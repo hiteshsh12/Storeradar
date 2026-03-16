@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StoreRadar — Find Any Product, At Any Store Near You</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --brand: #0F4C35;
+    --brand-mid: #1A7A57;
+    --brand-light: #E6F4EE;
+    --brand-glow: rgba(26,122,87,0.12);
+    --accent: #F4A623;
+    --accent-light: #FEF3DC;
+    --bg: #F5F4EF;
+    --card: #FFFFFF;
+    --text: #141412;
+    --muted: #6B6A63;
+    --border: rgba(0,0,0,0.07);
+    --border-mid: rgba(0,0,0,0.12);
+    --radar-green: #22C55E;
+    --shadow-sm: 0 2px 12px rgba(0,0,0,0.06);
+    --shadow-md: 0 8px 32px rgba(0,0,0,0.09);
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.65;
+    overflow-x: hidden;
+  }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 3px; }
+
+  /* ── UTILITY ── */
+  .container { max-width: 1140px; margin: 0 auto; padding: 0 32px; }
+  .tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--brand-light); color: var(--brand);
+    font-size: 11px; font-weight: 500; letter-spacing: 0.6px; text-transform: uppercase;
+    padding: 5px 14px; border-radius: 100px; margin-bottom: 16px;
+  }
+  .tag::before { content:''; width:6px; height:6px; border-radius:50%; background:var(--brand-mid); display:block; animation: blink 2s ease-in-out infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  /* ── NAV ── */
+  nav {
+    position: sticky; top: 0; z-index: 200;
+    background: rgba(245,244,239,0.88);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+  }
+  .nav-inner {
+    max-width: 1140px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 64px;
+  }
+  .logo {
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 22px;
+    color: var(--brand); letter-spacing: -0.5px; text-decoration: none;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .logo-icon {
+    width: 32px; height: 32px; background: var(--brand); border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    position: relative; overflow: hidden;
+  }
+  .logo-icon::before, .logo-icon::after {
+    content: ''; position: absolute; border-radius: 50%;
+    border: 1.5px solid rgba(255,255,255,0.5);
+  }
+  .logo-icon::before { width: 20px; height: 20px; }
+  .logo-icon::after { width: 10px; height: 10px; background: rgba(255,255,255,0.9); border:none; }
+  .logo span { color: var(--accent); }
+  .nav-links { display: flex; gap: 2px; align-items: center; }
+  .nav-links a {
+    text-decoration: none; color: var(--muted); font-size: 14px;
+    padding: 6px 14px; border-radius: 8px; transition: all 0.18s;
+  }
+  .nav-links a:hover { color: var(--text); background: rgba(0,0,0,0.05); }
+  .nav-actions { display: flex; gap: 10px; align-items: center; }
+  .btn-ghost {
+    background: transparent; border: 1px solid var(--border-mid); color: var(--text);
+    padding: 8px 18px; border-radius: 100px; font-size: 13px; font-family: 'DM Sans', sans-serif;
+    cursor: pointer; transition: all 0.18s; font-weight: 400;
+  }
+  .btn-ghost:hover { background: var(--card); }
+  .btn-primary {
+    background: var(--brand); color: #fff; border: none;
+    padding: 9px 22px; border-radius: 100px; font-size: 13px; font-family: 'DM Sans', sans-serif;
+    cursor: pointer; font-weight: 500; transition: all 0.18s;
+  }
+  .btn-primary:hover { background: #0a3626; transform: translateY(-1px); }
+
+  /* ── HERO ── */
+  .hero {
+    padding: 80px 32px 64px;
+    max-width: 1140px; margin: 0 auto;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center;
+  }
+  .hero-eyebrow { animation: fadeUp 0.6s ease both; }
+  .hero h1 {
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 52px;
+    line-height: 1.06; letter-spacing: -2px; margin-bottom: 22px;
+    animation: fadeUp 0.6s 0.1s ease both;
+  }
+  .hero h1 em { font-style: normal; color: var(--brand-mid); }
+  .hero p {
+    color: var(--muted); font-size: 17px; line-height: 1.75; margin-bottom: 36px;
+    animation: fadeUp 0.6s 0.2s ease both;
+  }
+
+  /* Search card */
+  .search-card {
+    background: var(--card); border-radius: 20px;
+    border: 1px solid var(--border-mid);
+    box-shadow: var(--shadow-md);
+    padding: 8px 8px 8px 0;
+    display: flex; align-items: center;
+    animation: fadeUp 0.6s 0.3s ease both;
+  }
+  .search-field { flex: 1; padding: 10px 20px; }
+  .search-field label { display: block; font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); margin-bottom: 3px; }
+  .search-field input {
+    width: 100%; border: none; outline: none; background: transparent;
+    font-family: 'DM Sans', sans-serif; font-size: 15px; color: var(--text);
+  }
+  .search-field input::placeholder { color: #b0afa8; }
+  .search-divider { width: 1px; height: 36px; background: var(--border); flex-shrink: 0; }
+  .search-btn {
+    background: var(--brand); color: #fff; border: none;
+    padding: 14px 28px; border-radius: 14px; font-size: 15px; font-weight: 500;
+    font-family: 'DM Sans', sans-serif; cursor: pointer; white-space: nowrap;
+    margin: 4px; transition: all 0.18s; display: flex; align-items: center; gap: 8px;
+  }
+  .search-btn:hover { background: #0a3626; }
+  .search-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+  .hero-note { font-size: 12px; color: var(--muted); margin-top: 12px; animation: fadeUp 0.6s 0.35s ease both; }
+  .hero-note a { color: var(--brand); text-decoration: none; }
+
+  /* Hero Visual — Radar */
+  .hero-visual {
+    animation: fadeUp 0.6s 0.15s ease both;
+    position: relative;
+  }
+  .radar-wrap {
+    background: var(--card); border-radius: 28px; border: 1px solid var(--border-mid);
+    box-shadow: var(--shadow-md); overflow: hidden;
+    aspect-ratio: 1; position: relative;
+  }
+  .radar-grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(15,76,53,0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(15,76,53,0.06) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+  .radar-circle {
+    position: absolute; top: 50%; left: 50%;
+    border-radius: 50%; border: 1px solid rgba(15,76,53,0.12);
+    transform: translate(-50%,-50%);
+  }
+  .radar-circle:nth-child(1) { width: 80px; height: 80px; border-color: rgba(15,76,53,0.22); }
+  .radar-circle:nth-child(2) { width: 160px; height: 160px; }
+  .radar-circle:nth-child(3) { width: 240px; height: 240px; }
+  .radar-circle:nth-child(4) { width: 320px; height: 320px; opacity: 0.6; }
+  .radar-sweep {
+    position: absolute; top: 50%; left: 50%;
+    width: 160px; height: 2px;
+    transform-origin: left center;
+    background: linear-gradient(90deg, rgba(26,122,87,0.8), transparent);
+    animation: sweep 3s linear infinite;
+  }
+  @keyframes sweep { to { transform: rotate(360deg); } }
+  .radar-dot {
+    position: absolute; border-radius: 50%;
+    transition: transform 0.2s; cursor: pointer;
+  }
+  .radar-dot:hover { transform: scale(1.3) !important; }
+  .radar-dot-inner {
+    border-radius: 50%; border: 2px solid #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  .radar-you {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%,-50%);
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--brand); border: 3px solid #fff;
+    box-shadow: 0 0 0 4px rgba(15,76,53,0.2);
+    z-index: 5;
+  }
+  .radar-tooltip {
+    position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%);
+    background: var(--text); color: #fff; font-size: 11px; font-weight: 500;
+    padding: 4px 10px; border-radius: 8px; white-space: nowrap;
+    pointer-events: none; opacity: 0; transition: opacity 0.2s;
+    z-index: 10;
+  }
+  .radar-dot:hover .radar-tooltip { opacity: 1; }
+
+  /* Store cards floating on radar */
+  .floating-card {
+    position: absolute; background: var(--card); border-radius: 12px;
+    border: 1px solid var(--border-mid); padding: 10px 14px;
+    box-shadow: var(--shadow-sm); min-width: 140px; z-index: 4;
+    animation: float 4s ease-in-out infinite;
+  }
+  .floating-card:nth-child(even) { animation-delay: -2s; }
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
+  .fc-name { font-size: 12px; font-weight: 500; color: var(--text); }
+  .fc-dist { font-size: 11px; color: var(--muted); }
+  .fc-badge { font-size: 10px; font-weight: 500; padding: 2px 7px; border-radius: 100px; margin-top: 4px; display: inline-block; }
+  .fc-badge.green { background: var(--brand-light); color: var(--brand); }
+  .fc-badge.amber { background: var(--accent-light); color: #8a5a00; }
+
+  /* ── STATS ── */
+  .stats-section {
+    background: var(--brand);
+    padding: 40px 32px;
+  }
+  .stats-inner {
+    max-width: 1140px; margin: 0 auto;
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 0;
+  }
+  .stat-item {
+    text-align: center; padding: 8px 0;
+    border-right: 1px solid rgba(255,255,255,0.12);
+  }
+  .stat-item:last-child { border-right: none; }
+  .stat-num { font-family: 'Syne', sans-serif; font-size: 32px; font-weight: 800; color: #fff; letter-spacing: -1px; }
+  .stat-lbl { font-size: 13px; color: rgba(255,255,255,0.6); margin-top: 2px; }
+
+  /* ── SECTION WRAPPER ── */
+  section { padding: 80px 0; }
+  section.alt-bg { background: var(--card); }
+  .section-header { margin-bottom: 48px; }
+  .section-header h2 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 36px; letter-spacing: -0.8px; line-height: 1.2; }
+  .section-header p { color: var(--muted); font-size: 16px; margin-top: 10px; max-width: 520px; }
+
+  /* ── HOW IT WORKS ── */
+  .steps-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
+  .step-card {
+    background: var(--card); border-radius: 20px; padding: 32px;
+    border: 1px solid var(--border); position: relative; overflow: hidden;
+    transition: all 0.22s; cursor: default;
+  }
+  .step-card:hover { border-color: var(--brand-mid); transform: translateY(-3px); box-shadow: var(--shadow-md); }
+  .step-num {
+    font-family: 'Syne', sans-serif; font-size: 80px; font-weight: 800;
+    color: var(--brand-light); position: absolute; top: 8px; right: 16px; line-height: 1; pointer-events: none;
+    transition: color 0.22s;
+  }
+  .step-card:hover .step-num { color: rgba(26,122,87,0.18); }
+  .step-icon {
+    width: 52px; height: 52px; border-radius: 14px;
+    background: var(--brand-light); display: flex; align-items: center; justify-content: center;
+    font-size: 26px; margin-bottom: 20px;
+  }
+  .step-card h3 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 19px; margin-bottom: 10px; }
+  .step-card p { color: var(--muted); font-size: 14px; line-height: 1.65; }
+
+  /* ── SAMPLE RESULTS ── */
+  .results-header {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;
+  }
+  .results-header h3 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 20px; }
+  .results-header span { font-size: 13px; color: var(--muted); }
+  .results-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; }
+
+  .store-card {
+    background: var(--card); border-radius: 18px; border: 1.5px solid var(--border);
+    padding: 22px; transition: all 0.22s; cursor: pointer; position: relative; overflow: hidden;
+  }
+  .store-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: var(--brand-mid); transform: scaleX(0); transform-origin: left;
+    transition: transform 0.25s;
+  }
+  .store-card:hover { border-color: rgba(26,122,87,0.3); transform: translateY(-2px); box-shadow: var(--shadow-md); }
+  .store-card:hover::before { transform: scaleX(1); }
+  .sc-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px; }
+  .sc-icon {
+    width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center;
+    justify-content: center; font-size: 22px; flex-shrink: 0;
+  }
+  .sc-icon.local { background: var(--brand-light); }
+  .sc-icon.chain { background: #E8F0FF; }
+  .sc-badge { font-size: 11px; font-weight: 500; padding: 4px 10px; border-radius: 100px; }
+  .sc-badge.in { background: var(--brand-light); color: var(--brand); }
+  .sc-badge.low { background: var(--accent-light); color: #7a4f00; }
+  .sc-name { font-weight: 500; font-size: 15px; margin-bottom: 4px; }
+  .sc-meta { font-size: 13px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+  .dot-sep { width: 3px; height: 3px; border-radius: 50%; background: var(--muted); opacity: 0.5; }
+  .sc-price { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 24px; color: var(--text); margin-top: 14px; }
+  .sc-price small { font-size: 12px; font-weight: 400; color: var(--muted); font-family: 'DM Sans', sans-serif; }
+  .sc-cta {
+    margin-top: 14px; width: 100%; padding: 10px; background: var(--bg); border: 1px solid var(--border);
+    border-radius: 10px; font-size: 13px; font-family: 'DM Sans', sans-serif; font-weight: 500;
+    color: var(--text); cursor: pointer; transition: all 0.18s;
+  }
+  .sc-cta:hover { background: var(--brand); color: #fff; border-color: var(--brand); }
+
+  /* ── DUAL FLOW ── */
+  .flows-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .flow-card {
+    background: var(--bg); border-radius: 24px; border: 1px solid var(--border);
+    padding: 36px;
+  }
+  .flow-card.dark { background: var(--brand); }
+  .flow-card h3 {
+    font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700;
+    margin-bottom: 28px; display: flex; align-items: center; gap: 10px;
+  }
+  .flow-card.dark h3 { color: #fff; }
+  .flow-emoji { font-size: 22px; }
+  .flow-step { display: flex; align-items: flex-start; gap: 14px; }
+  .flow-spine { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+  .flow-node {
+    width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 600; font-family: 'Syne', sans-serif;
+  }
+  .flow-node.user { background: var(--brand-light); color: var(--brand); }
+  .flow-node.store { background: rgba(255,255,255,0.15); color: #fff; }
+  .flow-edge { width: 2px; height: 22px; background: var(--border); }
+  .flow-card.dark .flow-edge { background: rgba(255,255,255,0.12); }
+  .flow-body { padding-top: 4px; padding-bottom: 18px; }
+  .flow-body strong { display: block; font-size: 14px; font-weight: 500; }
+  .flow-card.dark .flow-body strong { color: rgba(255,255,255,0.95); }
+  .flow-body p { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .flow-card.dark .flow-body p { color: rgba(255,255,255,0.55); }
+
+  /* ── FOR STORES ── */
+  .for-stores-banner {
+    background: var(--text); border-radius: 28px; padding: 56px 64px;
+    display: flex; align-items: center; justify-content: space-between; gap: 40px;
+  }
+  .fsb-left h2 { font-family: 'Syne', sans-serif; font-size: 32px; font-weight: 800; color: #fff; letter-spacing: -0.5px; margin-bottom: 10px; }
+  .fsb-left p { color: rgba(255,255,255,0.5); font-size: 15px; max-width: 440px; line-height: 1.7; }
+  .fsb-right { display: flex; gap: 12px; flex-shrink: 0; }
+  .btn-cta-white {
+    background: #fff; color: var(--text); border: none;
+    padding: 14px 32px; border-radius: 100px; font-size: 15px; font-weight: 500;
+    font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.18s;
+  }
+  .btn-cta-white:hover { background: var(--bg); transform: translateY(-1px); }
+  .btn-cta-outline {
+    background: transparent; color: rgba(255,255,255,0.7); border: 1.5px solid rgba(255,255,255,0.2);
+    padding: 14px 32px; border-radius: 100px; font-size: 15px;
+    font-family: 'DM Sans', sans-serif; cursor: pointer; transition: all 0.18s;
+  }
+  .btn-cta-outline:hover { border-color: rgba(255,255,255,0.5); color: #fff; }
+
+  /* ── CATEGORIES ── */
+  .categories-grid { display: flex; flex-wrap: wrap; gap: 12px; }
+  .cat-pill {
+    background: var(--card); border: 1px solid var(--border); border-radius: 100px;
+    padding: 10px 22px; font-size: 14px; cursor: pointer; transition: all 0.18s;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .cat-pill:hover { background: var(--brand-light); border-color: var(--brand-mid); color: var(--brand); }
+  .cat-pill.active { background: var(--brand); border-color: var(--brand); color: #fff; }
+
+  /* ── FAQ ── */
+  .faq-list { max-width: 720px; }
+  .faq-item { border-bottom: 1px solid var(--border); }
+  .faq-q {
+    width: 100%; background: none; border: none; text-align: left;
+    padding: 20px 0; font-size: 16px; font-weight: 500; font-family: 'DM Sans', sans-serif;
+    color: var(--text); cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  }
+  .faq-q .ico { width: 24px; height: 24px; border-radius: 50%; background: var(--bg); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 16px; transition: transform 0.2s; }
+  .faq-a { font-size: 14px; color: var(--muted); line-height: 1.7; padding-bottom: 20px; display: none; }
+  .faq-item.open .faq-q .ico { transform: rotate(45deg); background: var(--brand); color: #fff; }
+  .faq-item.open .faq-a { display: block; }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--text); color: rgba(255,255,255,0.5); padding: 56px 32px 32px;
+  }
+  .footer-inner { max-width: 1140px; margin: 0 auto; }
+  .footer-top { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 48px; margin-bottom: 48px; }
+  .footer-brand .logo { color: #fff; margin-bottom: 16px; display: inline-flex; }
+  .footer-brand p { font-size: 14px; line-height: 1.7; max-width: 260px; }
+  .footer-col h4 { font-size: 13px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.8px; color: rgba(255,255,255,0.4); margin-bottom: 16px; }
+  .footer-col a { display: block; font-size: 14px; color: rgba(255,255,255,0.6); text-decoration: none; margin-bottom: 10px; transition: color 0.18s; }
+  .footer-col a:hover { color: #fff; }
+  .footer-bottom { border-top: 1px solid rgba(255,255,255,0.08); padding-top: 24px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+  .footer-bottom span { color: rgba(255,255,255,0.35); }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ── MOBILE ── */
+  @media (max-width: 900px) {
+    .hero { grid-template-columns: 1fr; gap: 40px; padding: 48px 20px; }
+    .hero h1 { font-size: 38px; }
+    .steps-row, .results-grid, .flows-grid { grid-template-columns: 1fr; }
+    .stats-inner { grid-template-columns: repeat(2,1fr); gap: 24px; }
+    .stat-item { border-right: none; }
+    .for-stores-banner { flex-direction: column; padding: 40px 32px; }
+    .fsb-right { flex-direction: column; }
+    .footer-top { grid-template-columns: 1fr 1fr; gap: 32px; }
+    .nav-links { display: none; }
+    .container { padding: 0 20px; }
+    section { padding: 56px 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════ NAV ═══════════════════════════ -->
+<nav>
+  <div class="nav-inner">
+    <a href="#" class="logo">
+      <div class="logo-icon"></div>
+      Store<span>Radar</span>
+    </a>
+    <div class="nav-links">
+      <a href="#how-it-works">How it works</a>
+      <a href="#for-stores">For Stores</a>
+      <a href="#categories">Categories</a>
+      <a href="#faq">FAQ</a>
+    </div>
+    <div class="nav-actions">
+      <button class="btn-ghost">Sign in</button>
+      <button class="btn-primary">List Your Store →</button>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════ HERO ═══════════════════════════ -->
+<div class="hero">
+  <div>
+    <div class="hero-eyebrow">
+      <div class="tag">StoreRadar · Real-time inventory</div>
+    </div>
+    <h1>Find any product at <em>any</em> store near&nbsp;you.</h1>
+    <p>Type what you need. StoreRadar scans every registered store nearby — big chains, small shops, corner stores — and shows you exactly who has it in stock, right now.</p>
+
+    <div class="search-card">
+      <div class="search-field">
+        <label>What are you looking for?</label>
+        <input type="text" placeholder="e.g. Sony WH-1000XM5 headphones" id="searchInput">
+      </div>
+      <div class="search-divider"></div>
+      <div class="search-field" style="max-width:160px">
+        <label>Near you</label>
+        <input type="text" placeholder="Pincode or area" id="locationInput">
+      </div>
+      <button class="search-btn" onclick="doSearch()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        Search
+      </button>
+    </div>
+    <p class="hero-note">Free for shoppers, always. <a href="#for-stores">Own a store? List it free →</a></p>
+  </div>
+
+  <!-- RADAR VISUAL -->
+  <div class="hero-visual">
+    <div class="radar-wrap">
+      <div class="radar-grid"></div>
+      <div class="radar-circle"></div>
+      <div class="radar-circle"></div>
+      <div class="radar-circle"></div>
+      <div class="radar-circle"></div>
+      <div class="radar-sweep"></div>
+      <div class="radar-you"></div>
+
+      <!-- Radar dots -->
+      <div class="radar-dot" style="top:22%;left:20%" title="Rahul Electronics">
+        <div class="radar-dot-inner" style="width:22px;height:22px;background:#1A7A57"></div>
+        <div class="radar-tooltip">Rahul Electronics • 0.4km</div>
+      </div>
+      <div class="radar-dot" style="top:38%;left:65%" title="Croma">
+        <div class="radar-dot-inner" style="width:18px;height:18px;background:#3B8BD4"></div>
+        <div class="radar-tooltip">Croma • 1.2km</div>
+      </div>
+      <div class="radar-dot" style="top:60%;left:32%" title="Suresh Mobiles">
+        <div class="radar-dot-inner" style="width:20px;height:20px;background:#1A7A57"></div>
+        <div class="radar-tooltip">Suresh Mobiles • 1.8km</div>
+      </div>
+      <div class="radar-dot" style="top:26%;left:74%" title="Reliance Digital">
+        <div class="radar-dot-inner" style="width:18px;height:18px;background:#3B8BD4"></div>
+        <div class="radar-tooltip">Reliance Digital • 2.1km</div>
+      </div>
+      <div class="radar-dot" style="top:68%;left:70%" title="Kumar Electronics">
+        <div class="radar-dot-inner" style="width:16px;height:16px;background:#1A7A57"></div>
+        <div class="radar-tooltip">Kumar Electronics • 2.6km</div>
+      </div>
+      <div class="radar-dot" style="top:76%;left:22%" title="Metro Mobile World">
+        <div class="radar-dot-inner" style="width:14px;height:14px;background:#F4A623"></div>
+        <div class="radar-tooltip">Metro Mobile World • 3.1km</div>
+      </div>
+
+      <!-- Floating cards -->
+      <div class="floating-card" style="top:8%;left:36%">
+        <div class="fc-name">Rahul Electronics</div>
+        <div class="fc-dist">0.4 km away</div>
+        <div class="fc-badge green">In stock</div>
+      </div>
+      <div class="floating-card" style="bottom:12%;right:4%">
+        <div class="fc-name">Suresh Mobiles</div>
+        <div class="fc-dist">1.8 km away</div>
+        <div class="fc-badge amber">Last 2 left</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════ STATS ═══════════════════════════ -->
+<div class="stats-section">
+  <div class="stats-inner">
+    <div class="stat-item">
+      <div class="stat-num">1,40,000+</div>
+      <div class="stat-lbl">Stores listed across India</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">52 cities</div>
+      <div class="stat-lbl">And growing every week</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">&lt; 30 min</div>
+      <div class="stat-lbl">Average time to get it in hand</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num">Free</div>
+      <div class="stat-lbl">Always free for shoppers</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════ HOW IT WORKS ═══════════════════════════ -->
+<section id="how-it-works">
+  <div class="container">
+    <div class="section-header">
+      <div class="tag">How it works</div>
+      <h2>Three steps, zero waiting.</h2>
+      <p>No delivery. No days of waiting. Just find it, go get it.</p>
+    </div>
+    <div class="steps-row">
+      <div class="step-card">
+        <div class="step-num">1</div>
+        <div class="step-icon">🔍</div>
+        <h3>Describe your product</h3>
+        <p>Type the product name, model number, or just describe what you need in plain language. Our smart search understands it all.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">2</div>
+        <div class="step-icon">📡</div>
+        <h3>Radar scans every store</h3>
+        <p>StoreRadar checks live inventory from every registered store near you — big or small, chain or independent, all treated equally.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">3</div>
+        <div class="step-icon">🛍️</div>
+        <h3>Pick it up today</h3>
+        <p>See exact stock count, price, open hours, and directions. Call ahead or just walk in. Product is waiting on the shelf.</p>
+      </div>
+    </div>
+
+    <!-- SAMPLE RESULTS -->
+    <div style="margin-top:64px">
+      <div class="results-header">
+        <h3>Results for: <em style="color:var(--brand-mid);font-style:normal">"Sony WH-1000XM5"</em></h3>
+        <span>3 stores nearby • sorted by distance</span>
+      </div>
+      <div class="results-grid">
+        <div class="store-card">
+          <div class="sc-top">
+            <div class="sc-icon local">🏪</div>
+            <div class="sc-badge in">In stock</div>
+          </div>
+          <div class="sc-name">Rahul Electronics</div>
+          <div class="sc-meta"><span>0.4 km</span><span class="dot-sep"></span><span>Lajpat Nagar</span></div>
+          <div class="sc-price">₹29,990 <small>MRP</small></div>
+          <button class="sc-cta">Get Directions →</button>
+        </div>
+        <div class="store-card">
+          <div class="sc-top">
+            <div class="sc-icon chain">🛒</div>
+            <div class="sc-badge in">In stock</div>
+          </div>
+          <div class="sc-name">Croma</div>
+          <div class="sc-meta"><span>1.2 km</span><span class="dot-sep"></span><span>Saket</span></div>
+          <div class="sc-price">₹31,490 <small>MRP</small></div>
+          <button class="sc-cta">Get Directions →</button>
+        </div>
+        <div class="store-card">
+          <div class="sc-top">
+            <div class="sc-icon local">🔌</div>
+            <div class="sc-badge low">Last 1 left</div>
+          </div>
+          <div class="sc-name">Suresh Mobiles</div>
+          <div class="sc-meta"><span>1.8 km</span><span class="dot-sep"></span><span>CR Park</span></div>
+          <div class="sc-price">₹28,500 <small>Negotiable</small></div>
+          <button class="sc-cta">Get Directions →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════ CATEGORIES ═══════════════════════════ -->
+<section id="categories" class="alt-bg">
+  <div class="container">
+    <div class="section-header">
+      <div class="tag">Categories</div>
+      <h2>Everything, everywhere.</h2>
+      <p>StoreRadar works for any product category. If a store sells it, we can find it.</p>
+    </div>
+    <div class="categories-grid" id="catGrid">
+      <div class="cat-pill active" onclick="setActive(this)">📱 Electronics</div>
+      <div class="cat-pill" onclick="setActive(this)">🏠 Home Appliances</div>
+      <div class="cat-pill" onclick="setActive(this)">👗 Clothing & Fashion</div>
+      <div class="cat-pill" onclick="setActive(this)">💊 Medicines & Health</div>
+      <div class="cat-pill" onclick="setActive(this)">🛒 Groceries</div>
+      <div class="cat-pill" onclick="setActive(this)">🧸 Toys & Games</div>
+      <div class="cat-pill" onclick="setActive(this)">🔧 Hardware & Tools</div>
+      <div class="cat-pill" onclick="setActive(this)">📚 Books & Stationery</div>
+      <div class="cat-pill" onclick="setActive(this)">🍳 Kitchen & Cookware</div>
+      <div class="cat-pill" onclick="setActive(this)">🏋️ Sports & Fitness</div>
+      <div class="cat-pill" onclick="setActive(this)">💄 Beauty & Personal Care</div>
+      <div class="cat-pill" onclick="setActive(this)">🐾 Pet Supplies</div>
+      <div class="cat-pill" onclick="setActive(this)">🎨 Art & Craft</div>
+      <div class="cat-pill" onclick="setActive(this)">🚗 Auto Parts</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════ USER + STORE FLOW ═══════════════════════════ -->
+<section>
+  <div class="container">
+    <div class="section-header">
+      <div class="tag">Platform flows</div>
+      <h2>How each side works</h2>
+      <p>Built for shoppers and store owners both.</p>
+    </div>
+    <div class="flows-grid">
+      <!-- Shopper -->
+      <div class="flow-card">
+        <h3><span class="flow-emoji">👤</span> Shopper journey</h3>
+        <div class="flow-step">
+          <div class="flow-spine"><div class="flow-node user">1</div><div class="flow-edge"></div></div>
+          <div class="flow-body"><strong>Open StoreRadar</strong><p>Web or mobile, no signup required</p></div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-spine"><div class="flow-node user">2</div><div class="flow-edge"></div></div>
+          <div class="flow-body"><strong>Enter your product requirement</strong><p>Name, model, or free-text description</p></div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-spine"><div class="flow-node user">3</div><div class="flow-edge"></div></div>
+          <div class="flow-body"><strong>Allow location access</strong><p>Or type a pincode / area name manually</p></div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-spine"><div class="flow-node user">4</div><div class="flow-edge"></div></div>
+          <div class="flow-body"><strong>Browse results on the radar</strong><p>Sorted by distance, filter by price or availability</p></div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-spine"><div class="flow-node user">5</div><div class="flow-edge"></div></div>
+          <div class="flow-body"><strong>Tap a store card</strong><p>See stock count, price, open hours, and directions</p></div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-spine"><div class="flow-node user">6</div></div>
+          <div class="flow-body"><strong>Walk in or call ahead</strong><p>Product is on the shelf, waiting for you</p></div>
+        </div>
+      </div>
+      <!-- Store owner -->
+      <div class="flow-card dark">
+        <h3><span class="flow-emoji">🏪</span> Store owner journey</h3>
+        <div class="flow-step">
+          <div class="flow-spine"><div class="flow-node store">1</div><div class="flow-edge"></div></div>
+          <div class="flow-body"><strong>Register your store</strong><p>Name, address, category, and photos — takes 5 minutes</p></div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-spine"><div class="flow-node store">2</div><div class="flow-edge"></div></div>
+          <div class="flow-body"><strong>Add your inventory</strong><p>Products, SKUs, quantities, and prices</p></div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-spine"><div class="flow-node store">3</div><div class="flow-edge"></div></div>
+          <div class="flow-body"><strong>Go live instantly</strong><p>Your store appears in nearby shopper searches immediately</p></div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-spine"><div class="flow-node store">4</div><div class="flow-edge"></div></div>
+          <div class="flow-body"><strong>Receive shopper enquiries</strong><p>Notifications when someone nearby is searching for your stock</p></div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-spine"><div class="flow-node store">5</div><div class="flow-edge"></div></div>
+          <div class="flow-body"><strong>Update inventory daily</strong><p>Simple dashboard, app, or WhatsApp-based updates</p></div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-spine"><div class="flow-node store">6</div></div>
+          <div class="flow-body"><strong>Get more walk-in customers</strong><p>Convert online searches into real footfall and revenue</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════ FOR STORES CTA ═══════════════════════════ -->
+<section id="for-stores" class="alt-bg">
+  <div class="container">
+    <div class="for-stores-banner">
+      <div class="fsb-left">
+        <h2>Own a store? Get discovered by thousands.</h2>
+        <p>Whether you run a tiny corner shop or a large multi-brand outlet — StoreRadar puts you on the map. Listing is completely free. No commissions, no hidden fees.</p>
+      </div>
+      <div class="fsb-right">
+        <button class="btn-cta-white">Register Your Store Free →</button>
+        <button class="btn-cta-outline">See How It Works</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════ FAQ ═══════════════════════════ -->
+<section id="faq">
+  <div class="container">
+    <div class="section-header">
+      <div class="tag">FAQ</div>
+      <h2>Common questions</h2>
+    </div>
+    <div class="faq-list">
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          Is StoreRadar free to use as a shopper?
+          <span class="ico">+</span>
+        </button>
+        <div class="faq-a">Yes, completely free — forever. Shoppers can search any product, browse all nearby results, view store details and get directions with no signup, no subscription, and no hidden costs.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          How do small stores keep their inventory updated?
+          <span class="ico">+</span>
+        </button>
+        <div class="faq-a">We've made it as simple as possible. Store owners can update inventory through our web dashboard, mobile app, or even via WhatsApp. For tech-savvy owners, we also provide a CSV import and an API.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          How is StoreRadar different from online shopping?
+          <span class="ico">+</span>
+        </button>
+        <div class="faq-a">StoreRadar shows you what's available right now at physical stores near you. You get the product in 30 minutes, not 2 days. There's no delivery, no packaging, no waiting — and you support local businesses.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          Are only big chain stores listed, or independent shops too?
+          <span class="ico">+</span>
+        </button>
+        <div class="faq-a">Every store matters on StoreRadar. Big chains, small neighbourhood shops, and independent stores all appear in search results. Results are sorted by proximity, not store size or budget. A small local shop can show up above a big chain if it's closer to you.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          Does listing my store cost anything?
+          <span class="ico">+</span>
+        </button>
+        <div class="faq-a">Basic listing is completely free and always will be. We offer optional premium tools for stores — like analytics, promoted placements, and CRM integrations — on a paid plan. But getting found by shoppers is free.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          Which cities is StoreRadar available in?
+          <span class="ico">+</span>
+        </button>
+        <div class="faq-a">StoreRadar is currently live in 52 cities across India including Delhi, Mumbai, Bangalore, Hyderabad, Chennai, Pune, Kolkata, and more. We add new cities every week based on store registrations. If your city isn't listed, register your store and we'll prioritise your area!</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════ FOOTER ═══════════════════════════ -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a href="#" class="logo">
+          <div class="logo-icon"></div>
+          Store<span style="color:var(--accent)">Radar</span>
+        </a>
+        <p>Find any product at any store near you, in real time. Built for India's 1.4 crore shops.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Product</h4>
+        <a href="#">How it works</a>
+        <a href="#">For Shoppers</a>
+        <a href="#">For Store Owners</a>
+        <a href="#">Mobile App</a>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <a href="#">About us</a>
+        <a href="#">Blog</a>
+        <a href="#">Careers</a>
+        <a href="#">Press kit</a>
+      </div>
+      <div class="footer-col">
+        <h4>Support</h4>
+        <a href="#">Help centre</a>
+        <a href="#">Contact us</a>
+        <a href="#">Privacy policy</a>
+        <a href="#">Terms of use</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2025 StoreRadar. Made with ❤️ in India.</span>
+      <span>Every store deserves to be found.</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Search
+  function doSearch() {
+    const q = document.getElementById('searchInput').value.trim();
+    const loc = document.getElementById('locationInput').value.trim();
+    if (!q) { document.getElementById('searchInput').focus(); return; }
+    alert('Searching for "' + q + '" near ' + (loc || 'your location') + '...\n\n(Connect to a live backend to see real results!)');
+  }
+  document.getElementById('searchInput').addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+
+  // Category pills
+  function setActive(el) {
+    document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  // FAQ accordion
+  function toggleFaq(btn) {
+    const item = btn.closest('.faq-item');
+    const wasOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'));
+    if (!wasOpen) item.classList.add('open');
+  }
+
+  // Scroll reveal
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.style.opacity = '1';
+        e.target.style.transform = 'translateY(0)';
+      }
+    });
+  }, { threshold: 0.12 });
+
+  document.querySelectorAll('.step-card, .store-card, .flow-card, .cat-pill').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(18px)';
+    el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+    observer.observe(el);
+  });
+</script>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+//  StoreRadar — Backend API Integration
+//  Change API_BASE to your deployed backend URL when going live
+// ═══════════════════════════════════════════════════════════════
+const API_BASE = 'http://localhost:3001/api';
+
+// ── Token helpers ────────────────────────────────────────────
+const getToken = () => localStorage.getItem('sr_token');
+const setToken = (t) => localStorage.setItem('sr_token', t);
+const clearToken = () => localStorage.removeItem('sr_token');
+
+const authHeaders = () => ({
+  'Content-Type': 'application/json',
+  ...(getToken() ? { Authorization: `Bearer ${getToken()}` } : {})
+});
+
+// ── Generic API call wrapper ─────────────────────────────────
+async function apiFetch(endpoint, options = {}) {
+  try {
+    const res = await fetch(API_BASE + endpoint, {
+      headers: authHeaders(),
+      ...options
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'API error');
+    return data;
+  } catch (err) {
+    console.error('API Error:', err.message);
+    throw err;
+  }
+}
+
+// ── SEARCH ───────────────────────────────────────────────────
+async function doSearch() {
+  const q = document.getElementById('searchInput').value.trim();
+  const loc = document.getElementById('locationInput').value.trim();
+  if (!q) { document.getElementById('searchInput').focus(); return; }
+
+  const btn = document.querySelector('.search-btn');
+  btn.textContent = 'Searching…';
+  btn.disabled = true;
+
+  try {
+    // Try to get browser location first
+    let params = `q=${encodeURIComponent(q)}`;
+
+    if (navigator.geolocation) {
+      await new Promise(resolve => {
+        navigator.geolocation.getCurrentPosition(
+          pos => {
+            params += `&lat=${pos.coords.latitude}&lng=${pos.coords.longitude}&radius=5000`;
+            resolve();
+          },
+          () => {
+            if (loc) params += `&pincode=${encodeURIComponent(loc)}`;
+            resolve();
+          },
+          { timeout: 3000 }
+        );
+      });
+    } else if (loc) {
+      params += `&pincode=${encodeURIComponent(loc)}`;
+    }
+
+    const data = await apiFetch(`/products/search?${params}`);
+    displayResults(data.results, q);
+  } catch (err) {
+    showToast('Search failed: ' + err.message, 'error');
+  } finally {
+    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg> Search`;
+    btn.disabled = false;
+  }
+}
+
+// ── DISPLAY RESULTS ──────────────────────────────────────────
+function displayResults(results, query) {
+  // Remove old results section if exists
+  const old = document.getElementById('live-results');
+  if (old) old.remove();
+
+  const section = document.createElement('section');
+  section.id = 'live-results';
+  section.style.cssText = 'background:var(--card);padding:48px 0;';
+
+  if (!results || results.length === 0) {
+    section.innerHTML = `
+      <div class="container">
+        <div style="text-align:center;padding:48px 0;color:var(--muted)">
+          <div style="font-size:48px;margin-bottom:16px">🔍</div>
+          <h3 style="font-family:Syne,sans-serif;font-size:22px;margin-bottom:8px">No results found</h3>
+          <p>No stores nearby have "${query}" in stock right now. Try a broader search or different location.</p>
+        </div>
+      </div>`;
+  } else {
+    const cards = results.map(r => `
+      <div class="store-card">
+        <div class="sc-top">
+          <div class="sc-icon local">🏪</div>
+          <div class="sc-badge ${r.quantity <= 2 ? 'low' : 'in'}">${r.quantity <= 2 ? 'Last ' + r.quantity + ' left' : 'In stock'}</div>
+        </div>
+        <div class="sc-name">${escHtml(r.store?.name || 'Unknown Store')}</div>
+        <div class="sc-meta">
+          ${r.distanceKm ? `<span>${r.distanceKm} km</span><span class="dot-sep"></span>` : ''}
+          <span>${escHtml(r.store?.address?.area || r.store?.address?.city || '')}</span>
+        </div>
+        <div style="font-size:13px;color:var(--muted);margin-top:6px">${escHtml(r.productName)}${r.brand ? ' · ' + escHtml(r.brand) : ''}</div>
+        <div class="sc-price">₹${r.price.toLocaleString('en-IN')} <small>${r.mrp && r.mrp > r.price ? 'MRP ₹' + r.mrp.toLocaleString('en-IN') : ''}</small></div>
+        ${r.store?.phone ? `<a href="tel:${r.store.phone}" style="display:block;margin-top:8px;font-size:13px;color:var(--brand)">📞 ${r.store.phone}</a>` : ''}
+        <button class="sc-cta" onclick="openDirections(${r.store?.coordinates?.[1]}, ${r.store?.coordinates?.[0]}, '${escHtml(r.store?.name || '')}')">
+          Get Directions →
+        </button>
+      </div>`).join('');
+
+    section.innerHTML = `
+      <div class="container">
+        <div class="results-header">
+          <h3>Results for: <em style="color:var(--brand-mid);font-style:normal">"${escHtml(query)}"</em></h3>
+          <span>${results.length} store${results.length !== 1 ? 's' : ''} found nearby</span>
+        </div>
+        <div class="results-grid">${cards}</div>
+        <p style="font-size:13px;color:var(--muted);margin-top:24px;text-align:center">Showing stores within 5 km · <a href="#" style="color:var(--brand)">Expand radius</a></p>
+      </div>`;
+  }
+
+  // Insert after the stats bar
+  const statsSection = document.querySelector('.stats-section');
+  if (statsSection) {
+    statsSection.insertAdjacentElement('afterend', section);
+    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+function openDirections(lat, lng, name) {
+  if (!lat || !lng) { showToast('No coordinates for this store', 'error'); return; }
+  window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&destination_place_id=${encodeURIComponent(name)}`, '_blank');
+}
+
+// ── AUTH ─────────────────────────────────────────────────────
+async function register(name, email, password, role = 'shopper') {
+  const data = await apiFetch('/auth/register', {
+    method: 'POST',
+    body: JSON.stringify({ name, email, password, role })
+  });
+  setToken(data.token);
+  return data.user;
+}
+
+async function login(email, password) {
+  const data = await apiFetch('/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({ email, password })
+  });
+  setToken(data.token);
+  updateNavForLoggedInUser(data.user);
+  return data.user;
+}
+
+function logout() {
+  clearToken();
+  location.reload();
+}
+
+function updateNavForLoggedInUser(user) {
+  const actions = document.querySelector('.nav-actions');
+  if (!actions) return;
+  actions.innerHTML = `
+    <span style="font-size:13px;color:var(--muted)">Hi, ${escHtml(user.name.split(' ')[0])}</span>
+    <button class="btn-ghost" onclick="logout()">Sign out</button>
+    ${user.role === 'store_owner' ? '<button class="btn-primary" onclick="showStoreForm()">My Store →</button>' : ''}
+  `;
+}
+
+// ── TOAST NOTIFICATIONS ──────────────────────────────────────
+function showToast(message, type = 'info') {
+  const existing = document.getElementById('sr-toast');
+  if (existing) existing.remove();
+
+  const toast = document.createElement('div');
+  toast.id = 'sr-toast';
+  toast.style.cssText = `
+    position:fixed;bottom:24px;right:24px;z-index:9999;
+    background:${type === 'error' ? '#c0392b' : 'var(--brand)'};
+    color:#fff;padding:12px 20px;border-radius:12px;
+    font-size:14px;font-family:'DM Sans',sans-serif;
+    box-shadow:0 4px 20px rgba(0,0,0,0.2);
+    animation:fadeUp 0.3s ease;
+  `;
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 4000);
+}
+
+// ── UTILITY ──────────────────────────────────────────────────
+function escHtml(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Check if user is already logged in on page load
+(async () => {
+  if (!getToken()) return;
+  try {
+    const data = await apiFetch('/auth/me');
+    if (data.user) updateNavForLoggedInUser(data.user);
+  } catch { clearToken(); }
+})();
+</script>
+
+</body>
+</html>

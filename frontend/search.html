@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StoreRadar — Find Any Product Near You</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+  :root {
+    --brand:#0F4C35; --brand-mid:#1A7A57; --brand-light:#E6F4EE;
+    --accent:#F4A623; --accent-light:#FEF3DC;
+    --bg:#F5F4EF; --card:#FFFFFF; --text:#141412; --muted:#6B6A63;
+    --border:rgba(0,0,0,0.07); --border-mid:rgba(0,0,0,0.13);
+    --shadow-sm:0 2px 12px rgba(0,0,0,0.06); --shadow-md:0 8px 32px rgba(0,0,0,0.10);
+    --radius:16px;
+  }
+  html { scroll-behavior:smooth; }
+  body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); font-size:15px; line-height:1.6; }
+
+  /* ── NAV ── */
+  nav {
+    position:sticky; top:0; z-index:100;
+    background:rgba(245,244,239,0.9); backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--border); padding:0 32px;
+  }
+  .nav-inner { max-width:1100px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; height:62px; }
+  .logo { font-family:'Syne',sans-serif; font-weight:800; font-size:20px; color:var(--brand); letter-spacing:-0.4px; text-decoration:none; display:flex; align-items:center; gap:8px; }
+  .logo-icon { width:30px; height:30px; background:var(--brand); border-radius:8px; display:flex; align-items:center; justify-content:center; position:relative; flex-shrink:0; }
+  .logo-icon::before,.logo-icon::after { content:''; position:absolute; border-radius:50%; border:1.5px solid rgba(255,255,255,0.5); }
+  .logo-icon::before { width:18px; height:18px; }
+  .logo-icon::after  { width:7px; height:7px; background:rgba(255,255,255,0.9); border:none; }
+  .logo span { color:var(--accent); }
+  .nav-right { display:flex; align-items:center; gap:10px; }
+  .nav-link { font-size:13px; color:var(--muted); text-decoration:none; padding:6px 12px; border-radius:8px; transition:all 0.15s; }
+  .nav-link:hover { color:var(--text); background:rgba(0,0,0,0.05); }
+  .nav-btn { background:var(--brand); color:#fff; border:none; padding:8px 18px; border-radius:100px; font-size:13px; font-weight:500; font-family:'DM Sans',sans-serif; cursor:pointer; transition:all 0.15s; text-decoration:none; }
+  .nav-btn:hover { background:#0a3626; }
+
+  /* ── HERO ── */
+  .hero { background:var(--card); border-bottom:1px solid var(--border); padding:56px 32px 48px; }
+  .hero-inner { max-width:720px; margin:0 auto; text-align:center; }
+  .hero-tag { display:inline-flex; align-items:center; gap:6px; background:var(--brand-light); color:var(--brand); font-size:11px; font-weight:500; letter-spacing:0.6px; text-transform:uppercase; padding:5px 14px; border-radius:100px; margin-bottom:20px; }
+  .hero-tag::before { content:''; width:6px; height:6px; border-radius:50%; background:var(--brand-mid); display:block; animation:blink 2s ease-in-out infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .hero h1 { font-family:'Syne',sans-serif; font-weight:800; font-size:44px; line-height:1.08; letter-spacing:-1.5px; margin-bottom:14px; }
+  .hero h1 em { font-style:normal; color:var(--brand-mid); }
+  .hero p { color:var(--muted); font-size:16px; line-height:1.7; margin-bottom:32px; }
+
+  /* ── SEARCH BOX ── */
+  .search-box {
+    background:var(--card); border-radius:18px; border:1.5px solid var(--border-mid);
+    box-shadow:var(--shadow-md); display:flex; align-items:center; padding:6px 6px 6px 0;
+    max-width:680px; margin:0 auto;
+  }
+  .sf { flex:1; padding:8px 16px; }
+  .sf label { display:block; font-size:10px; font-weight:500; text-transform:uppercase; letter-spacing:0.8px; color:var(--muted); margin-bottom:3px; }
+  .sf input { width:100%; border:none; outline:none; background:transparent; font-family:'DM Sans',sans-serif; font-size:15px; color:var(--text); }
+  .sf input::placeholder { color:#b5b4ad; }
+  .sf-div { width:1px; height:36px; background:var(--border); flex-shrink:0; }
+  .search-btn {
+    background:var(--brand); color:#fff; border:none; padding:13px 24px;
+    border-radius:13px; font-size:15px; font-weight:500; font-family:'DM Sans',sans-serif;
+    cursor:pointer; margin:4px; transition:all 0.15s; display:flex; align-items:center; gap:8px; white-space:nowrap;
+  }
+  .search-btn:hover { background:#0a3626; }
+  .search-btn:disabled { opacity:0.7; cursor:not-allowed; }
+
+  .hero-note { font-size:12px; color:var(--muted); margin-top:12px; text-align:center; }
+  .hero-note a { color:var(--brand); text-decoration:none; }
+
+  /* ── FILTERS ── */
+  .filters-bar { background:var(--card); border-bottom:1px solid var(--border); padding:0 32px; position:sticky; top:62px; z-index:90; }
+  .filters-inner { max-width:1100px; margin:0 auto; display:flex; align-items:center; gap:10px; height:52px; overflow-x:auto; scrollbar-width:none; }
+  .filters-inner::-webkit-scrollbar { display:none; }
+  .filter-pill { flex-shrink:0; padding:6px 16px; border-radius:100px; font-size:13px; cursor:pointer; transition:all 0.15s; border:1px solid var(--border); background:transparent; color:var(--muted); font-family:'DM Sans',sans-serif; white-space:nowrap; }
+  .filter-pill:hover { border-color:var(--brand-mid); color:var(--brand); background:var(--brand-light); }
+  .filter-pill.active { background:var(--brand); border-color:var(--brand); color:#fff; }
+  .filter-sep { width:1px; height:20px; background:var(--border); flex-shrink:0; }
+  .radius-select { border:1px solid var(--border); border-radius:100px; padding:5px 12px; font-family:'DM Sans',sans-serif; font-size:13px; color:var(--text); background:transparent; outline:none; cursor:pointer; }
+
+  /* ── RESULTS AREA ── */
+  .results-area { max-width:1100px; margin:0 auto; padding:32px; }
+
+  /* RESULTS HEADER */
+  .results-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+  .results-header h2 { font-family:'Syne',sans-serif; font-size:20px; font-weight:700; }
+  .results-header h2 em { font-style:normal; color:var(--brand-mid); }
+  .results-meta { font-size:13px; color:var(--muted); }
+  .sort-select { border:1px solid var(--border-mid); border-radius:8px; padding:6px 12px; font-family:'DM Sans',sans-serif; font-size:13px; color:var(--text); background:var(--card); outline:none; cursor:pointer; }
+
+  /* RESULTS GRID */
+  .results-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
+
+  /* STORE CARD */
+  .store-card {
+    background:var(--card); border-radius:var(--radius); border:1.5px solid var(--border);
+    overflow:hidden; cursor:pointer; transition:all 0.22s; position:relative;
+  }
+  .store-card:hover { border-color:rgba(26,122,87,0.3); transform:translateY(-3px); box-shadow:var(--shadow-md); }
+  .store-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--brand-mid); transform:scaleX(0); transform-origin:left; transition:transform 0.25s; }
+  .store-card:hover::before { transform:scaleX(1); }
+  .sc-body { padding:18px; }
+  .sc-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:12px; }
+  .sc-icon { width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0; }
+  .sc-icon.local { background:var(--brand-light); }
+  .sc-icon.chain { background:#EEF5FF; }
+  .sc-badge { font-size:11px; font-weight:500; padding:4px 10px; border-radius:100px; }
+  .sc-badge.in    { background:var(--brand-light); color:var(--brand); }
+  .sc-badge.low   { background:var(--accent-light); color:#7a4f00; }
+  .sc-badge.out   { background:#FDECEA; color:#c0392b; }
+  .sc-name { font-weight:500; font-size:15px; margin-bottom:4px; }
+  .sc-product { font-size:13px; color:var(--muted); margin-bottom:4px; }
+  .sc-meta { font-size:12px; color:var(--muted); display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+  .meta-dot { width:3px; height:3px; border-radius:50%; background:var(--muted); opacity:0.4; }
+  .sc-price { font-family:'Syne',sans-serif; font-weight:700; font-size:22px; color:var(--text); margin-top:12px; }
+  .sc-mrp { font-size:12px; font-weight:400; color:var(--muted); font-family:'DM Sans',sans-serif; text-decoration:line-through; margin-left:6px; }
+  .sc-savings { font-size:12px; font-weight:500; color:var(--brand-mid); margin-left:6px; }
+  .sc-footer { border-top:1px solid var(--border); padding:12px 18px; display:flex; gap:8px; }
+  .sc-btn { flex:1; padding:9px; border-radius:10px; font-size:13px; font-weight:500; font-family:'DM Sans',sans-serif; cursor:pointer; transition:all 0.15s; border:none; text-align:center; }
+  .sc-btn.dir { background:var(--brand); color:#fff; }
+  .sc-btn.dir:hover { background:#0a3626; }
+  .sc-btn.call { background:var(--bg); color:var(--text); border:1px solid var(--border-mid); }
+  .sc-btn.call:hover { background:var(--brand-light); color:var(--brand); border-color:var(--brand-mid); }
+
+  /* DISTANCE BADGE */
+  .dist-badge { display:inline-flex; align-items:center; gap:4px; font-size:12px; color:var(--brand); background:var(--brand-light); padding:3px 9px; border-radius:100px; }
+  .dist-badge::before { content:'📍'; font-size:11px; }
+
+  /* ── STATES ── */
+  .state-box { text-align:center; padding:80px 20px; }
+  .state-icon { font-size:48px; margin-bottom:16px; }
+  .state-box h3 { font-family:'Syne',sans-serif; font-size:22px; font-weight:700; margin-bottom:8px; }
+  .state-box p { color:var(--muted); font-size:15px; max-width:380px; margin:0 auto 24px; line-height:1.7; }
+
+  /* INITIAL STATE */
+  .initial-state { text-align:center; padding:64px 20px; }
+  .cats-grid { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:28px; max-width:600px; margin-left:auto; margin-right:auto; }
+  .cat-chip { background:var(--card); border:1px solid var(--border); border-radius:100px; padding:9px 20px; font-size:14px; cursor:pointer; transition:all 0.15s; display:flex; align-items:center; gap:8px; }
+  .cat-chip:hover { background:var(--brand-light); border-color:var(--brand-mid); color:var(--brand); }
+
+  /* LOADING */
+  .loading-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
+  .skeleton { background:var(--card); border-radius:var(--radius); border:1px solid var(--border); overflow:hidden; }
+  .skel-line { background:linear-gradient(90deg,#f0f0ea 25%,#e8e8e2 50%,#f0f0ea 75%); background-size:200% 100%; animation:shimmer 1.5s infinite; border-radius:6px; }
+  @keyframes shimmer { to { background-position:-200% 0; } }
+
+  /* DETAIL MODAL */
+  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:flex-end; justify-content:center; z-index:500; opacity:0; pointer-events:none; transition:opacity 0.2s; }
+  .modal-overlay.open { opacity:1; pointer-events:all; }
+  .detail-modal { background:var(--card); border-radius:24px 24px 0 0; padding:32px; width:100%; max-width:600px; transform:translateY(100%); transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1); max-height:90vh; overflow-y:auto; }
+  .modal-overlay.open .detail-modal { transform:translateY(0); }
+  .modal-handle { width:40px; height:4px; background:var(--border-mid); border-radius:2px; margin:0 auto 24px; }
+  .detail-store-name { font-family:'Syne',sans-serif; font-size:22px; font-weight:700; margin-bottom:4px; }
+  .detail-row { display:flex; align-items:flex-start; gap:10px; padding:12px 0; border-bottom:1px solid var(--border); }
+  .detail-row:last-child { border-bottom:none; }
+  .detail-row .ico { font-size:18px; width:28px; text-align:center; flex-shrink:0; margin-top:2px; }
+  .detail-row .lbl { font-size:12px; color:var(--muted); margin-bottom:2px; text-transform:uppercase; letter-spacing:0.4px; }
+  .detail-row .val { font-size:14px; font-weight:500; }
+  .detail-actions { display:flex; gap:12px; margin-top:20px; }
+  .detail-btn { flex:1; padding:13px; border-radius:12px; font-size:15px; font-weight:500; font-family:'DM Sans',sans-serif; cursor:pointer; border:none; transition:all 0.15s; }
+  .detail-btn.primary { background:var(--brand); color:#fff; }
+  .detail-btn.primary:hover { background:#0a3626; }
+  .detail-btn.secondary { background:var(--bg); color:var(--text); border:1.5px solid var(--border-mid); }
+  .detail-btn.secondary:hover { background:var(--brand-light); color:var(--brand); border-color:var(--brand-mid); }
+
+  /* TOAST */
+  #toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px); z-index:9999; padding:12px 22px; border-radius:12px; font-size:14px; font-weight:500; color:#fff; background:var(--brand); box-shadow:0 4px 20px rgba(0,0,0,0.2); transition:all 0.3s; opacity:0; pointer-events:none; white-space:nowrap; }
+  #toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
+
+  /* SPINNER */
+  .spinner { width:18px; height:18px; border:2.5px solid rgba(255,255,255,0.3); border-top-color:#fff; border-radius:50%; animation:spin 0.7s linear infinite; display:inline-block; vertical-align:middle; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+
+  /* RESPONSIVE */
+  @media(max-width:900px) {
+    .hero h1 { font-size:32px; }
+    .search-box { flex-direction:column; padding:10px; }
+    .sf-div { display:none; }
+    .sf { width:100%; padding:8px 12px; }
+    .search-btn { width:100%; justify-content:center; margin:4px 0 0; }
+    .results-grid, .loading-grid { grid-template-columns:1fr; }
+    nav { padding:0 16px; }
+    .results-area { padding:20px 16px; }
+    .hero { padding:40px 16px 36px; }
+    .filters-bar { padding:0 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a href="#" class="logo"><div class="logo-icon"></div>Store<span>Radar</span></a>
+    <div class="nav-right">
+      <a href="dashboard.html" class="nav-link">Store Owner?</a>
+      <a href="dashboard.html" class="nav-btn">List Your Store →</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO SEARCH -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-tag">Live inventory · Every store nearby</div>
+    <h1>Find any product at any <em>store near you</em></h1>
+    <p>Big chains, small shops, corner stores — if they have it in stock, StoreRadar will find it.</p>
+
+    <div class="search-box">
+      <div class="sf">
+        <label>What are you looking for?</label>
+        <input type="text" id="searchInput" placeholder="e.g. Sony WH-1000XM5, Nike shoes, Paracetamol…" autofocus>
+      </div>
+      <div class="sf-div"></div>
+      <div class="sf" style="max-width:180px">
+        <label>Near</label>
+        <input type="text" id="locationInput" placeholder="Pincode or area">
+      </div>
+      <button class="search-btn" id="searchBtn" onclick="doSearch()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        Search
+      </button>
+    </div>
+    <p class="hero-note">Always free for shoppers · <a href="dashboard.html">Own a store? List it free →</a></p>
+  </div>
+</div>
+
+<!-- FILTERS BAR -->
+<div class="filters-bar" id="filtersBar" style="display:none">
+  <div class="filters-inner">
+    <button class="filter-pill active" onclick="setCategory('',this)">All</button>
+    <button class="filter-pill" onclick="setCategory('Electronics',this)">📱 Electronics</button>
+    <button class="filter-pill" onclick="setCategory('Home Appliances',this)">🏠 Home Appliances</button>
+    <button class="filter-pill" onclick="setCategory('Medicines & Health',this)">💊 Medicines</button>
+    <button class="filter-pill" onclick="setCategory('Groceries',this)">🛒 Groceries</button>
+    <button class="filter-pill" onclick="setCategory('Clothing & Fashion',this)">👗 Fashion</button>
+    <button class="filter-pill" onclick="setCategory('Sports & Fitness',this)">🏋️ Sports</button>
+    <button class="filter-pill" onclick="setCategory('Books & Stationery',this)">📚 Books</button>
+    <button class="filter-pill" onclick="setCategory('Hardware & Tools',this)">🔧 Hardware</button>
+    <div class="filter-sep"></div>
+    <select class="radius-select" id="radiusSelect" onchange="doSearch()">
+      <option value="2000">Within 2 km</option>
+      <option value="5000" selected>Within 5 km</option>
+      <option value="10000">Within 10 km</option>
+      <option value="20000">Within 20 km</option>
+    </select>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<div class="results-area">
+  <div id="resultsContainer">
+    <!-- INITIAL STATE -->
+    <div class="initial-state" id="initialState">
+      <div style="font-size:48px;margin-bottom:16px">📡</div>
+      <h3 style="font-family:'Syne',sans-serif;font-size:22px;font-weight:700;margin-bottom:8px">What are you looking for?</h3>
+      <p style="color:var(--muted);font-size:15px;max-width:380px;margin:0 auto">Type any product above and we'll scan every nearby store that has it in stock right now.</p>
+      <div class="cats-grid">
+        <div class="cat-chip" onclick="quickSearch('Sony headphones')">🎧 Sony headphones</div>
+        <div class="cat-chip" onclick="quickSearch('iPhone 15')">📱 iPhone 15</div>
+        <div class="cat-chip" onclick="quickSearch('Nike shoes')">👟 Nike shoes</div>
+        <div class="cat-chip" onclick="quickSearch('Paracetamol 500mg')">💊 Paracetamol</div>
+        <div class="cat-chip" onclick="quickSearch('Samsung TV')">📺 Samsung TV</div>
+        <div class="cat-chip" onclick="quickSearch('Yoga mat')">🧘 Yoga mat</div>
+        <div class="cat-chip" onclick="quickSearch('Whey protein')">💪 Whey protein</div>
+        <div class="cat-chip" onclick="quickSearch('Notebook A4')">📓 Notebook A4</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- STORE DETAIL MODAL -->
+<div class="modal-overlay" id="detailModal" onclick="handleModalClick(event)">
+  <div class="detail-modal">
+    <div class="modal-handle"></div>
+    <div id="detailContent"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const API = 'http://localhost:3001/api';
+let lastQuery = '', lastResults = [], activeCategory = '', userLat = null, userLng = null;
+
+// ── Get user location silently ───────────────────
+if (navigator.geolocation) {
+  navigator.geolocation.getCurrentPosition(
+    pos => { userLat = pos.coords.latitude; userLng = pos.coords.longitude; },
+    () => {}
+  );
+}
+
+// ── Search ───────────────────────────────────────
+async function doSearch(overrideQ) {
+  const q = overrideQ || document.getElementById('searchInput').value.trim();
+  if (!q) { document.getElementById('searchInput').focus(); return; }
+
+  lastQuery = q;
+  const loc = document.getElementById('locationInput').value.trim();
+  const radius = document.getElementById('radiusSelect')?.value || 5000;
+
+  document.getElementById('initialState') && (document.getElementById('initialState').style.display = 'none');
+  document.getElementById('filtersBar').style.display = '';
+  showLoading();
+
+  const btn = document.getElementById('searchBtn');
+  btn.innerHTML = '<span class="spinner"></span> Searching…';
+  btn.disabled = true;
+
+  try {
+    let params = `q=${encodeURIComponent(q)}&radius=${radius}`;
+    if (activeCategory) params += `&category=${encodeURIComponent(activeCategory)}`;
+
+    // Use browser location if available
+    if (userLat && userLng) {
+      params += `&lat=${userLat}&lng=${userLng}`;
+    } else if (loc) {
+      params += `&pincode=${encodeURIComponent(loc)}`;
+    }
+
+    const data = await fetch(`${API}/products/search?${params}`).then(r => r.json());
+    lastResults = data.results || [];
+    renderResults(lastResults, q);
+  } catch (e) {
+    showError('Could not connect to StoreRadar. Make sure the backend is running.');
+  } finally {
+    btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg> Search`;
+    btn.disabled = false;
+  }
+}
+
+function quickSearch(q) {
+  document.getElementById('searchInput').value = q;
+  doSearch(q);
+}
+
+function setCategory(cat, el) {
+  activeCategory = cat;
+  document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  if (lastQuery) doSearch(lastQuery);
+}
+
+// ── Render results ───────────────────────────────
+function renderResults(results, query) {
+  const container = document.getElementById('resultsContainer');
+
+  if (!results || results.length === 0) {
+    container.innerHTML = `
+      <div class="state-box">
+        <div class="state-icon">🔍</div>
+        <h3>No results found</h3>
+        <p>No stores nearby have <strong>"${esc(query)}"</strong> in stock right now. Try a broader search term or expand your radius.</p>
+        <button onclick="document.getElementById('searchInput').focus()" style="background:var(--brand);color:#fff;border:none;padding:10px 24px;border-radius:100px;font-size:14px;cursor:pointer;font-family:'DM Sans',sans-serif;">Try another search</button>
+      </div>`;
+    return;
+  }
+
+  // Sort
+  const sorted = [...results].sort((a,b) => (a.distanceMeters||9999) - (b.distanceMeters||9999));
+
+  container.innerHTML = `
+    <div class="results-header">
+      <h2>${sorted.length} store${sorted.length!==1?'s':''} have <em>"${esc(query)}"</em></h2>
+      <div style="display:flex;align-items:center;gap:12px">
+        <span class="results-meta">Sorted by distance</span>
+      </div>
+    </div>
+    <div class="results-grid" id="resultsGrid">
+      ${sorted.map((r,i) => storeCard(r,i)).join('')}
+    </div>`;
+}
+
+function storeCard(r, i) {
+  const isLocal = !['Croma','Reliance Digital','Apple','Samsung','LG','D-Mart','Big Bazaar','Flipkart','Amazon'].some(c => (r.store?.name||'').includes(c));
+  const savings = r.mrp && r.mrp > r.price ? Math.round(((r.mrp - r.price)/r.mrp)*100) : 0;
+  const stockStatus = r.quantity === 0 ? 'out' : r.quantity <= 2 ? 'low' : 'in';
+  const stockLabel  = r.quantity === 0 ? 'Out of stock' : r.quantity <= 2 ? `Last ${r.quantity} left` : 'In stock';
+
+  return `
+    <div class="store-card" onclick="openDetail(${i})" style="animation:fadeUp 0.4s ${i*0.05}s ease both;opacity:0">
+      <div class="sc-body">
+        <div class="sc-top">
+          <div class="sc-icon ${isLocal?'local':'chain'}">${isLocal?'🏪':'🛒'}</div>
+          <span class="sc-badge ${stockStatus}">${stockLabel}</span>
+        </div>
+        <div class="sc-name">${esc(r.store?.name||'Unknown Store')}</div>
+        <div class="sc-product">${esc(r.productName)}${r.brand?' · '+esc(r.brand):''}</div>
+        <div class="sc-meta">
+          ${r.distanceKm ? `<span class="dist-badge">${r.distanceKm} km</span>` : ''}
+          ${r.store?.address?.area ? `<span>${esc(r.store.address.area)}</span>` : ''}
+          ${r.store?.address?.city ? `<span class="meta-dot"></span><span>${esc(r.store.address.city)}</span>` : ''}
+        </div>
+        <div class="sc-price">
+          ₹${r.price.toLocaleString('en-IN')}
+          ${r.mrp && r.mrp > r.price ? `<span class="sc-mrp">₹${r.mrp.toLocaleString('en-IN')}</span><span class="sc-savings">${savings}% off</span>` : ''}
+        </div>
+      </div>
+      <div class="sc-footer">
+        <button class="sc-btn dir" onclick="event.stopPropagation();openDirections(${r.store?.coordinates?.[1]},${r.store?.coordinates?.[0]},'${esc(r.store?.name||'')}')">📍 Directions</button>
+        ${r.store?.phone ? `<button class="sc-btn call" onclick="event.stopPropagation();window.open('tel:${r.store.phone}')">📞 Call</button>` : ''}
+      </div>
+    </div>`;
+}
+
+// ── Detail modal ─────────────────────────────────
+function openDetail(i) {
+  const r = lastResults[i];
+  if (!r) return;
+  const s = r.store || {};
+  const savings = r.mrp && r.mrp > r.price ? (r.mrp - r.price).toLocaleString('en-IN') : null;
+
+  document.getElementById('detailContent').innerHTML = `
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px">
+      <div>
+        <div class="detail-store-name">${esc(s.name||'Store')}</div>
+        <div style="font-size:13px;color:var(--muted)">${esc(s.category||'')}${r.distanceKm?` · ${r.distanceKm} km away`:''}</div>
+      </div>
+      <span class="sc-badge ${r.quantity===0?'out':r.quantity<=2?'low':'in'}" style="margin-top:4px">${r.quantity===0?'Out of stock':r.quantity<=2?`Last ${r.quantity} left`:`In stock · ${r.quantity}`}</span>
+    </div>
+
+    <div style="background:var(--bg);border-radius:14px;padding:16px 18px;margin-bottom:16px">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px">Product</div>
+      <div style="font-size:16px;font-weight:500">${esc(r.productName)}</div>
+      ${r.brand?`<div style="font-size:13px;color:var(--muted)">${esc(r.brand)}${r.modelNumber?' · '+esc(r.modelNumber):''}</div>`:''}
+      <div style="margin-top:12px;display:flex;align-items:baseline;gap:8px">
+        <span style="font-family:'Syne',sans-serif;font-size:26px;font-weight:800">₹${r.price.toLocaleString('en-IN')}</span>
+        ${r.mrp&&r.mrp>r.price?`<span style="font-size:13px;color:var(--muted);text-decoration:line-through">₹${r.mrp.toLocaleString('en-IN')}</span><span style="font-size:13px;color:var(--brand-mid);font-weight:500">You save ₹${savings}</span>`:''}
+      </div>
+    </div>
+
+    <div class="detail-row"><div class="ico">📍</div><div><div class="lbl">Address</div><div class="val">${esc(s.address?.street||'')}${s.address?.area?', '+esc(s.address.area):''}${s.address?.city?', '+esc(s.address.city):''} – ${esc(s.address?.pincode||'')}</div></div></div>
+    ${s.phone?`<div class="detail-row"><div class="ico">📞</div><div><div class="lbl">Phone</div><div class="val"><a href="tel:${s.phone}" style="color:var(--brand)">${esc(s.phone)}</a></div></div></div>`:''}
+    ${s.openHours?`<div class="detail-row"><div class="ico">🕐</div><div><div class="lbl">Open Hours</div><div class="val">${s.openHours.open} – ${s.openHours.close}${s.openHours.days?' · '+esc(s.openHours.days):''}</div></div></div>`:''}
+
+    <div class="detail-actions">
+      <button class="detail-btn primary" onclick="openDirections(${s.coordinates?.[1]},${s.coordinates?.[0]},'${esc(s.name||'')}')">📍 Get Directions</button>
+      ${s.phone?`<button class="detail-btn secondary" onclick="window.open('tel:${s.phone}')">📞 Call Store</button>`:`<button class="detail-btn secondary" onclick="closeModal()">Close</button>`}
+    </div>`;
+
+  document.getElementById('detailModal').classList.add('open');
+}
+
+function handleModalClick(e) { if (e.target === e.currentTarget) closeModal(); }
+function closeModal() { document.getElementById('detailModal').classList.remove('open'); }
+
+// ── Directions ───────────────────────────────────
+function openDirections(lat, lng, name) {
+  if (!lat || !lng) { showToast('No location data for this store'); return; }
+  window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, '_blank');
+}
+
+// ── Loading skeleton ─────────────────────────────
+function showLoading() {
+  const skel = Array(6).fill(0).map(()=>`
+    <div class="skeleton" style="height:220px">
+      <div style="padding:18px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:12px">
+          <div class="skel-line" style="width:44px;height:44px;border-radius:12px"></div>
+          <div class="skel-line" style="width:80px;height:24px;border-radius:100px"></div>
+        </div>
+        <div class="skel-line" style="width:65%;height:16px;border-radius:6px;margin-bottom:8px"></div>
+        <div class="skel-line" style="width:45%;height:13px;border-radius:6px;margin-bottom:8px"></div>
+        <div class="skel-line" style="width:55%;height:13px;border-radius:6px;margin-bottom:16px"></div>
+        <div class="skel-line" style="width:40%;height:22px;border-radius:6px"></div>
+      </div>
+    </div>`).join('');
+  document.getElementById('resultsContainer').innerHTML = `<div class="loading-grid">${skel}</div>`;
+}
+
+function showError(msg) {
+  document.getElementById('resultsContainer').innerHTML = `
+    <div class="state-box">
+      <div class="state-icon">⚠️</div>
+      <h3>Something went wrong</h3>
+      <p>${esc(msg)}</p>
+    </div>`;
+}
+
+// ── Toast ─────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 3000);
+}
+
+// ── Utility ───────────────────────────────────────
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// Fade-up animation
+const style = document.createElement('style');
+style.textContent = '@keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }';
+document.head.appendChild(style);
+
+// Enter key triggers search
+document.getElementById('searchInput').addEventListener('keydown', e => { if (e.key==='Enter') doSearch(); });
+document.getElementById('locationInput').addEventListener('keydown', e => { if (e.key==='Enter') doSearch(); });
+</script>
+</body>
+</html>

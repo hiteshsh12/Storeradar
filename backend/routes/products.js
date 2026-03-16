@@ -43,9 +43,18 @@ router.get('/search', async (req, res) => {
       results.sort((a, b) => a._distance - b._distance);
     }
 
-    if (pincode && !lat) {
-      results = matchingProducts.filter(p => p.store && p.store.address.pincode === pincode);
-    }
+   if (pincode && !lat) {
+  results = matchingProducts.filter(p => {
+    if (!p.store) return false;
+    const pin = p.store.address.pincode || '';
+    const city = p.store.address.city || '';
+    const area = p.store.address.area || '';
+    const search = pincode.toLowerCase();
+    return pin === pincode ||
+           city.toLowerCase().includes(search) ||
+           area.toLowerCase().includes(search);
+  });
+}
 
     // Step 3: Shape the response
     const formatted = results.map(p => ({

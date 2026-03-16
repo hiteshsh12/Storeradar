@@ -162,3 +162,4 @@ curl -X POST http://localhost:5000/api/products \
 3. Host frontend on **Netlify** (free) — drag and drop the HTML file
 
 That's it — StoreRadar is live! 🚀
+# Storeradar

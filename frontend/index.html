@@ -439,8 +439,12 @@
       <a href="#faq">FAQ</a>
     </div>
     <div class="nav-actions">
-      <button class="btn-ghost">Sign in</button>
-      <button class="btn-primary">List Your Store →</button>
+      <button class="btn-ghost">Sign in
+        <a href="dashboard.html" class="nav-btn">List Your Store →</a>
+      </button>
+      <button class="btn-primary">List Your Store →
+        <a href="dashboard.html" class="nav-btn">List Your Store →</a>
+      </button>
     </div>
   </div>
 </nav>
@@ -870,7 +874,7 @@
 //  StoreRadar — Backend API Integration
 //  Change API_BASE to your deployed backend URL when going live
 // ═══════════════════════════════════════════════════════════════
-const API_BASE = 'storeradar-production.up.railway.app';
+const API_BASE ='https://storeradar-production.up.railway.app/api';
 
 // ── Token helpers ────────────────────────────────────────────
 const getToken = () => localStorage.getItem('sr_token');
